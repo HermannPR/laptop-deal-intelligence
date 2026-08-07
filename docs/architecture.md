@@ -19,6 +19,11 @@ from being attempted. Observations are append-only; current prices are derived f
 5. Upsert listing identity and append a price observation.
 6. Expose the latest observation through the `listing_current` database view.
 
+Scheduled jobs write through `ingest_collected_listings`, a narrowly scoped `SECURITY DEFINER` RPC. The
+anonymous role can reach this single function, but every call must present a generated 256-bit token whose
+SHA-256 hash is stored in the private schema. The collector never receives the Supabase service-role key.
+Supabase's advisor therefore reports the anonymous security-definer function as an intentional warning.
+
 Manufacturer model numbers are stronger than title similarity. The MVP does not automatically merge fuzzy
 matches. Later milestones will add a match-candidate review queue and explicit confidence evidence.
 
@@ -29,4 +34,3 @@ matches. Later milestones will add a match-candidate review queue and explicit c
 3. Add parser failure, missing-field, and price-format tests.
 4. Register the adapter in `collector/cli.py`.
 5. Verify robots guidance and terms before enabling scheduled requests.
-

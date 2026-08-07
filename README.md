@@ -25,8 +25,9 @@ Run the live Cyberpuerta JSON-LD adapter without writing data:
 python -m collector.cli --source cyberpuerta --dry-run
 ```
 
-To persist observations, set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. Mercado Libre additionally
-requires `MELI_ACCESS_TOKEN`; the application does not bypass its access controls.
+To persist observations, set `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and the limited
+`COLLECTOR_INGEST_TOKEN`. The collector never receives the Supabase service-role key. Mercado Libre
+additionally requires `MELI_ACCESS_TOKEN`; the application does not bypass its access controls.
 
 ## Database
 

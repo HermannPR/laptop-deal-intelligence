@@ -3,6 +3,7 @@ from pathlib import Path
 
 from collector.sources.cyberpuerta import CyberpuertaAdapter
 from collector.sources.mercadolibre import MercadoLibreAdapter
+from collector.storage import SupabaseWriter
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -38,3 +39,12 @@ def test_mercadolibre_parser_uses_api_payload() -> None:
     assert len(listings) == 1
     assert listings[0].source_slug == "mercadolibre"
     assert listings[0].gpu_model == "RTX 5060"
+
+
+def test_writer_serializes_limited_rpc_payload() -> None:
+    listing = CyberpuertaAdapter().parse((FIXTURES / "cyberpuerta_catalog.html").read_text())[0]
+    writer = object.__new__(SupabaseWriter)
+    payload = writer._serialize(listing)
+    assert payload["effective_price_mxn"] == "24142.00"
+    assert payload["product_key"]
+    assert payload["configuration_key"]
