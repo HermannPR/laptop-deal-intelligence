@@ -1,0 +1,31 @@
+{
+  "shopping_results": [
+    {
+      "position": 1,
+      "title": "Lenovo LOQ Ryzen 7 RTX 5060 16GB 512GB",
+      "product_id": "amazon-product-1",
+      "product_link": "https://www.google.com/search?ibp=oshop&q=laptop&prds=amazon-product-1",
+      "source": "Amazon.com.mx",
+      "price": "$23,999.00",
+      "extracted_price": 23999.0
+    },
+    {
+      "position": 2,
+      "title": "ASUS TUF Gaming RTX 4050 16GB 1TB",
+      "product_id": "meli-product-1",
+      "product_link": "https://www.google.com/search?ibp=oshop&q=laptop&prds=meli-product-1",
+      "source": "Mercado Libre",
+      "price": "$18,499.00",
+      "extracted_price": 18499.0
+    },
+    {
+      "position": 3,
+      "title": "Laptop from an untargeted merchant",
+      "product_id": "other-product-1",
+      "product_link": "https://www.google.com/search?ibp=oshop&q=laptop&prds=other-product-1",
+      "source": "Other Store",
+      "price": "$9,999.00",
+      "extracted_price": 9999.0
+    }
+  ]
+}

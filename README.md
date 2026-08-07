@@ -28,6 +28,8 @@ python -m collector.cli --source cyberpuerta --dry-run
 To persist observations, set `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and the limited
 `COLLECTOR_INGEST_TOKEN`. The collector never receives the Supabase service-role key. Mercado Libre
 additionally requires `MELI_ACCESS_TOKEN`; the application does not bypass its access controls.
+Google Shopping discovery requires `SERPAPI_API_KEY` and records Amazon/Mercado Libre prices as
+Google-reported observations so they are not confused with direct retailer checks.
 
 ## Database
 
@@ -56,6 +58,8 @@ minute 17 every six hours to avoid GitHub's busiest scheduling boundary.
 
 - Historical intelligence and Deal Score arrive in Milestone 2 after enough observations exist.
 - Mercado Libre live collection needs an authorized API token.
+- Google Shopping discovery links to Google's product result and may be stale or incomplete. It is
+  a discovery fallback for Amazon México and Mercado Libre, not authoritative direct collection.
 - Cross-store fuzzy matching is intentionally not automatic yet.
 - Dashboard data is read-only and access control for the personal deployment is deferred until live data exists.
 

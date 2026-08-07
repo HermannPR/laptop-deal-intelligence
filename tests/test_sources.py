@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from collector.sources.cyberpuerta import CyberpuertaAdapter
+from collector.sources.google_shopping import GoogleShoppingAdapter
 from collector.sources.mercadolibre import MercadoLibreAdapter
 from collector.storage import SupabaseWriter
 
@@ -41,6 +42,17 @@ def test_mercadolibre_parser_uses_api_payload() -> None:
     assert listings[0].gpu_model == "RTX 5060"
 
 
+def test_google_shopping_keeps_target_merchants_and_provenance() -> None:
+    payload = json.loads((FIXTURES / "google_shopping_search.json").read_text())
+    listings = GoogleShoppingAdapter().parse(payload)
+    assert len(listings) == 2
+    assert listings[0].source_slug == "amazon-mexico-google"
+    assert listings[0].source_name == "Amazon México via Google Shopping"
+    assert listings[0].gpu_model == "RTX 5060"
+    assert listings[0].raw_source["provenance"] == "google_shopping_reported"
+    assert listings[1].source_slug == "mercadolibre-google"
+
+
 def test_writer_serializes_limited_rpc_payload() -> None:
     listing = CyberpuertaAdapter().parse((FIXTURES / "cyberpuerta_catalog.html").read_text())[0]
     writer = object.__new__(SupabaseWriter)
@@ -48,3 +60,32 @@ def test_writer_serializes_limited_rpc_payload() -> None:
     assert payload["effective_price_mxn"] == "24142.00"
     assert payload["product_key"]
     assert payload["configuration_key"]
+
+
+def test_writer_splits_google_results_into_retailer_sources() -> None:
+    class FakeResponse:
+        def raise_for_status(self) -> None:
+            return None
+
+    class FakeClient:
+        def __init__(self) -> None:
+            self.calls: list[dict] = []
+
+        def post(self, path: str, json: dict) -> FakeResponse:
+            self.calls.append({"path": path, "json": json})
+            return FakeResponse()
+
+    payload = json.loads((FIXTURES / "google_shopping_search.json").read_text())
+    listings = GoogleShoppingAdapter().parse(payload)
+    writer = object.__new__(SupabaseWriter)
+    writer.ingest_token = "test-token"
+    writer.client = FakeClient()
+
+    writer.persist("Google Shopping", listings)
+
+    assert len(writer.client.calls) == 2
+    source_names = {call["json"]["p_source_name"] for call in writer.client.calls}
+    assert source_names == {
+        "Amazon México via Google Shopping",
+        "Mercado Libre via Google Shopping",
+    }

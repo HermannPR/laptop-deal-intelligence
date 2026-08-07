@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field, HttpUrl
 
 class CollectedListing(BaseModel):
     source_slug: str
+    source_name: str | None = None
     external_id: str
     title: str
     product_url: HttpUrl

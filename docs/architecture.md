@@ -24,6 +24,11 @@ anonymous role can reach this single function, but every call must present a gen
 SHA-256 hash is stored in the private schema. The collector never receives the Supabase service-role key.
 Supabase's advisor therefore reports the anonymous security-definer function as an intentional warning.
 
+Google Shopping is a discovery adapter rather than a direct retailer adapter. One low-frequency SerpApi
+request is filtered to supported merchants, then persisted as separate retailer-labelled sources. Its raw
+payload carries `google_shopping_reported` provenance, and its Google product URL is retained instead of
+claiming that the price was verified directly at Amazon or Mercado Libre.
+
 Manufacturer model numbers are stronger than title similarity. The MVP does not automatically merge fuzzy
 matches. Later milestones will add a match-candidate review queue and explicit confidence evidence.
 

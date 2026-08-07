@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from collections import defaultdict
 from typing import Any
 
 import httpx
@@ -29,11 +30,23 @@ class SupabaseWriter:
     def persist(self, source_name: str, listings: list[CollectedListing]) -> None:
         if not listings:
             return
+        groups: dict[tuple[str, str], list[CollectedListing]] = defaultdict(list)
+        for item in listings:
+            groups[(item.source_slug, item.source_name or source_name)].append(item)
+        for (source_slug, resolved_source_name), source_listings in groups.items():
+            self._persist_batch(source_slug, resolved_source_name, source_listings)
+
+    def _persist_batch(
+        self,
+        source_slug: str,
+        source_name: str,
+        listings: list[CollectedListing],
+    ) -> None:
         response = self.client.post(
             "rpc/ingest_collected_listings",
             json={
                 "p_token": self.ingest_token,
-                "p_source_slug": listings[0].source_slug,
+                "p_source_slug": source_slug,
                 "p_source_name": source_name,
                 "p_listings": [self._serialize(item) for item in listings],
             },
