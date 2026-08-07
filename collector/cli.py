@@ -5,11 +5,13 @@ import json
 import logging
 
 from collector.sources.cyberpuerta import CyberpuertaAdapter
+from collector.sources.google_shopping import GoogleShoppingAdapter
 from collector.sources.mercadolibre import MercadoLibreAdapter
 from collector.storage import SupabaseWriter
 
 ADAPTERS = {
     "cyberpuerta": CyberpuertaAdapter,
+    "google-shopping": GoogleShoppingAdapter,
     "mercadolibre": MercadoLibreAdapter,
 }
 
