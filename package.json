@@ -1,0 +1,13 @@
+{
+  "name": "laptop-deal-intelligence",
+  "private": true,
+  "workspaces": ["apps/web"],
+  "scripts": {
+    "dev": "npm --workspace @lapintel/web run dev",
+    "build": "npm --workspace @lapintel/web run build",
+    "lint": "npm --workspace @lapintel/web run lint",
+    "typecheck": "npm --workspace @lapintel/web run typecheck",
+    "test:web": "npm --workspace @lapintel/web run test"
+  }
+}
+
