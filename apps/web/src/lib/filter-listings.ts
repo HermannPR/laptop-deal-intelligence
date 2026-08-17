@@ -18,6 +18,9 @@ export function filterListings(listings: Listing[], filters: ListingFilters): Li
   });
 
   return filtered.sort((a, b) => {
+    if (filters.sort === "score") {
+      return (b.assessment.score ?? -1) - (a.assessment.score ?? -1);
+    }
     if (filters.sort === "newest") {
       return Date.parse(b.observedAt) - Date.parse(a.observedAt);
     }
@@ -27,4 +30,3 @@ export function filterListings(listings: Listing[], filters: ListingFilters): Li
     return a.effectivePriceMxn - b.effectivePriceMxn;
   });
 }
-

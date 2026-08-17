@@ -38,6 +38,13 @@ Apply `supabase/migrations/202608070001_initial.sql` to the Supabase project. Th
 read-only access to normalized catalog and price facts. Mutation remains restricted to the server-side
 service role. Never expose that key to the browser.
 
+## Price analysis
+
+The dashboard and product detail pages use observed price history rather than retailer discount labels.
+They show 7/30/90-day averages, historical range, a confidence-aware price opportunity score, and an
+evidence-based BUY NOW/CONSIDER/WAIT label. See [price intelligence](docs/price-intelligence.md) for the
+formula and current limitations.
+
 ## Checks
 
 ```bash
@@ -57,7 +64,7 @@ minute 17 every six hours to avoid GitHub's busiest scheduling boundary.
 
 ## Current limitations
 
-- Historical intelligence and Deal Score arrive in Milestone 2 after enough observations exist.
+- The current score evaluates price opportunity only; hardware, benchmark, and competitor scoring remain.
 - Mercado Libre live collection needs an authorized API token.
 - Google Shopping discovery links to Google's product result and may be stale or incomplete. It is
   a discovery fallback for Amazon México and Mercado Libre, not authoritative direct collection.

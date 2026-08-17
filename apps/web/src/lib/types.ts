@@ -1,3 +1,5 @@
+import type { PriceAssessment, PriceStats } from "./price-intelligence";
+
 export type Listing = {
   id: string;
   store: string;
@@ -16,6 +18,20 @@ export type Listing = {
   observedAt: string;
   stockStatus: "in_stock" | "low_stock" | "out_of_stock" | "unknown";
   historyState: "building" | "ready";
+  dataProvenance: "direct" | "google_reported";
+  priceStats: PriceStats;
+  assessment: PriceAssessment;
+};
+
+export type PricePoint = {
+  priceMxn: number;
+  observedAt: string;
+};
+
+export type ListingDetail = {
+  listing: Listing;
+  priceHistory: PricePoint[];
+  demo: boolean;
 };
 
 export type ListingFilters = {
@@ -24,6 +40,5 @@ export type ListingFilters = {
   store: string;
   gpu: string;
   minRam: number;
-  sort: "price" | "newest" | "gpu";
+  sort: "score" | "price" | "newest" | "gpu";
 };
-

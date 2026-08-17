@@ -1,6 +1,9 @@
 import type { Listing } from "./types";
+import { assessPrice, type PriceStats } from "./price-intelligence";
 
-export const sampleListings: Listing[] = [
+type BaseListing = Omit<Listing, "assessment" | "dataProvenance" | "priceStats">;
+
+const sampleBaseListings: BaseListing[] = [
   {
     id: "demo-cp-loq-5060",
     store: "Cyberpuerta",
@@ -98,3 +101,22 @@ export const sampleListings: Listing[] = [
   },
 ];
 
+export const sampleListings: Listing[] = sampleBaseListings.map((listing, index) => {
+  const stats: PriceStats = {
+    average7dMxn: Math.round(listing.effectivePriceMxn * (1.04 + index * 0.005)),
+    average30dMxn: Math.round(listing.effectivePriceMxn * (1.08 + index * 0.004)),
+    average90dMxn: Math.round(listing.effectivePriceMxn * (1.1 + index * 0.005)),
+    historicalMinMxn: Math.round(listing.effectivePriceMxn * 0.97),
+    historicalMaxMxn: Math.round(listing.effectivePriceMxn * 1.18),
+    observationCount: 28,
+    observedDays: 18,
+    priceChangeCount: 4,
+    historySpanDays: 30,
+  };
+  return {
+    ...listing,
+    dataProvenance: "direct",
+    priceStats: stats,
+    assessment: assessPrice(listing.effectivePriceMxn, stats),
+  };
+});

@@ -27,4 +27,16 @@ describe("filterListings", () => {
     });
     expect(results[0].effectivePriceMxn).toBeLessThanOrEqual(results[1].effectivePriceMxn);
   });
+
+  it("puts the strongest observed price opportunity first", () => {
+    const results = filterListings(sampleListings, {
+      query: "",
+      maxPrice: 60000,
+      store: "",
+      gpu: "",
+      minRam: 0,
+      sort: "score",
+    });
+    expect(results[0].assessment.score).toBeGreaterThanOrEqual(results[1].assessment.score ?? 0);
+  });
 });

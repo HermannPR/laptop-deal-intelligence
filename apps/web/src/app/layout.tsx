@@ -10,7 +10,7 @@ export const metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es-MX">
+    <html lang="es-MX" data-scroll-behavior="smooth">
       <body>{children}</body>
     </html>
   );
