@@ -29,7 +29,8 @@ To persist observations, set `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and the
 `COLLECTOR_INGEST_TOKEN`. The collector never receives the Supabase service-role key. Mercado Libre
 additionally requires `MELI_ACCESS_TOKEN`; the application does not bypass its access controls.
 Google Shopping discovery requires `SERPAPI_API_KEY` and records Amazon/Mercado Libre prices as
-Google-reported observations so they are not confused with direct retailer checks.
+Google-reported observations so they are not confused with direct retailer checks. Its six-hour runs
+alternate targeted Mercado Libre and Amazon México queries, using about 120 searches in a 30-day month.
 
 ## Database
 

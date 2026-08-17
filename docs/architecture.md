@@ -28,6 +28,8 @@ Google Shopping is a discovery adapter rather than a direct retailer adapter. On
 request is filtered to supported merchants, then persisted as separate retailer-labelled sources. Its raw
 payload carries `google_shopping_reported` provenance, and its Google product URL is retained instead of
 claiming that the price was verified directly at Amazon or Mercado Libre.
+The scheduled query alternates between those two merchants every six hours, giving each two checks per day
+while remaining comfortably inside SerpApi's 250-search free allowance.
 
 Manufacturer model numbers are stronger than title similarity. The MVP does not automatically merge fuzzy
 matches. Later milestones will add a match-candidate review queue and explicit confidence evidence.

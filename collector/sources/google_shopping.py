@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from collections.abc import Sequence
+from datetime import UTC, datetime
 from typing import Any
 
 from collector.domain import CollectedListing
@@ -19,6 +20,7 @@ class GoogleShoppingAdapter(SourceAdapter):
     slug = "google-shopping"
     display_name = "Google Shopping"
     endpoint = "https://serpapi.com/search.json"
+    search_queries = ("laptop Mercado Libre", "laptop Amazon México")
     merchant_sources = {
         "amazon": ("amazon-mexico-google", "Amazon México via Google Shopping"),
         "mercado libre": ("mercadolibre-google", "Mercado Libre via Google Shopping"),
@@ -32,7 +34,7 @@ class GoogleShoppingAdapter(SourceAdapter):
             self.endpoint,
             params={
                 "engine": "google_shopping",
-                "q": "laptop",
+                "q": self.search_query(),
                 "gl": "mx",
                 "hl": "es",
                 "location": "Mexico",
@@ -41,6 +43,11 @@ class GoogleShoppingAdapter(SourceAdapter):
         )
         response.raise_for_status()
         return self.parse(response.json())
+
+    def search_query(self, now: datetime | None = None) -> str:
+        """Alternate merchants every six hours to stay inside SerpApi's free quota."""
+        current = now or datetime.now(UTC)
+        return self.search_queries[(current.hour // 6) % len(self.search_queries)]
 
     def parse(self, payload: dict[str, Any]) -> list[CollectedListing]:
         listings: list[CollectedListing] = []
