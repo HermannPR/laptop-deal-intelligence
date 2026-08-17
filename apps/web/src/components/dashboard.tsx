@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { ArrowUpRight, Database, Gauge, Search, SlidersHorizontal } from "lucide-react";
 import { filterListings } from "@/lib/filter-listings";
 import type { Listing, ListingFilters } from "@/lib/types";
@@ -17,7 +18,7 @@ const initialFilters: ListingFilters = {
   store: "",
   gpu: "",
   minRam: 0,
-  sort: "price",
+  sort: "score",
 };
 
 export function Dashboard({ initialListings, demo }: { initialListings: Listing[]; demo: boolean }) {
@@ -39,12 +40,12 @@ export function Dashboard({ initialListings, demo }: { initialListings: Listing[
           <span>PRECIO JUSTO</span>
         </a>
         <div className="market-status"><span /> MERCADO MX · MONITOREO ACTIVO</div>
-        <div className="edition">EDICIÓN PERSONAL<br />07 AGO 2026</div>
+        <div className="edition">EDICIÓN PERSONAL<br />DATOS EN VIVO</div>
       </header>
 
       <section className="hero" id="top">
         <div className="hero-copy">
-          <p className="eyebrow">INTELIGENCIA DE COMPRA / LAPTOS MÉXICO</p>
+          <p className="eyebrow">INTELIGENCIA DE COMPRA / LAPTOPS MÉXICO</p>
           <h1>El descuento grita.<br /><em>La evidencia decide.</em></h1>
           <p className="dek">Precios observados, hardware comparable y enlaces directos. Sin repetir la publicidad de la tienda.</p>
         </div>
@@ -80,7 +81,7 @@ export function Dashboard({ initialListings, demo }: { initialListings: Listing[
           <FilterSelect label="RAM MÍNIMA" value={String(filters.minRam)} onChange={(value) => update("minRam", Number(value))} options={["16", "24", "32"]} empty="Sin mínimo" suffix=" GB" />
 
           <button className="reset" onClick={() => setFilters(initialFilters)}>LIMPIAR FILTROS</button>
-          <div className="method-note"><b>NOTA DE MÉTODO</b><p>El precio efectivo incluye envío cuando la tienda lo publica. El historial requiere observaciones repetidas.</p></div>
+          <div className="method-note"><b>NOTA DE MÉTODO</b><p>El precio efectivo incluye envío cuando la tienda lo publica. La puntuación se oculta cuando falta historial suficiente.</p></div>
         </aside>
 
         <section className="results">
@@ -88,6 +89,7 @@ export function Dashboard({ initialListings, demo }: { initialListings: Listing[
             <div><span>RADAR ACTUAL</span><h2>{listings.length} oportunidades bajo análisis</h2></div>
             <label>ORDENAR POR
               <select value={filters.sort} onChange={(event) => update("sort", event.target.value as ListingFilters["sort"])}>
+                <option value="score">Mejor oportunidad de precio</option>
                 <option value="price">Menor precio efectivo</option>
                 <option value="newest">Observación reciente</option>
                 <option value="gpu">Clase de GPU</option>
@@ -120,11 +122,12 @@ function FilterSelect({ label, value, onChange, options, empty, suffix = "" }: {
 
 function ListingCard({ listing, index }: { listing: Listing; index: number }) {
   const shipping = listing.shippingMxn ? `+ ${currency.format(listing.shippingMxn)} envío` : "envío incluido";
+  const discount = listing.assessment.observedDiscount30Pct;
   return (
     <article className="listing-card" style={{ "--delay": `${index * 55}ms` } as React.CSSProperties}>
       <div className="card-index">{String(index + 1).padStart(2, "0")}</div>
       <div className="card-main">
-        <div className="card-meta"><span>{listing.store}</span><span>{listing.stockStatus === "low_stock" ? "POCAS PIEZAS" : "EN EXISTENCIA"}</span></div>
+        <div className="card-meta"><span>{listing.store}</span><span>{listing.dataProvenance === "google_reported" ? "REPORTADO POR GOOGLE" : listing.stockStatus === "low_stock" ? "POCAS PIEZAS" : "LECTURA DIRECTA"}</span></div>
         <h3>{listing.title}</h3>
         <div className="spec-row">
           <span><small>CPU</small>{listing.cpu ?? "No publicado"}</span>
@@ -134,13 +137,25 @@ function ListingCard({ listing, index }: { listing: Listing; index: number }) {
         </div>
       </div>
       <div className="price-block">
+        <div className={`score-badge score-${listing.assessment.recommendation.toLowerCase().replaceAll(" ", "-")}`}>
+          <strong>{listing.assessment.score ?? "—"}</strong>
+          <span>{listing.assessment.score === null ? "SIN HISTORIAL" : "PRECIO / 100"}</span>
+        </div>
         <small>PRECIO EFECTIVO</small>
         <strong>{currency.format(listing.effectivePriceMxn)}</strong>
         <span>{shipping}</span>
-        <div className="history-chip">{listing.historyState === "building" ? "HISTORIAL EN FORMACIÓN" : "HISTORIAL DISPONIBLE"}</div>
-        <a href={listing.productUrl} target="_blank" rel="noopener noreferrer">VER OFERTA <ArrowUpRight size={16} /></a>
+        <div className="history-chip">
+          {listing.historyState === "building"
+            ? "HISTORIAL EN FORMACIÓN"
+            : discount !== null
+              ? `${discount >= 0 ? "↓" : "↑"} ${Math.abs(discount).toFixed(1)}% VS. PROMEDIO 30D`
+              : "HISTORIAL DISPONIBLE"}
+        </div>
+        <div className="card-actions">
+          <Link href={`/laptops/${listing.id}`}>ANALIZAR</Link>
+          <a href={listing.productUrl} target="_blank" rel="noopener noreferrer">OFERTA <ArrowUpRight size={14} /></a>
+        </div>
       </div>
     </article>
   );
 }
-

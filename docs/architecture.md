@@ -9,6 +9,8 @@ The product uses a deliberately small, two-runtime architecture:
 Collection never occurs during a user web request. Each source adapter returns the same
 `CollectedListing` contract. A source failure is logged independently and cannot prevent other adapters
 from being attempted. Observations are append-only; current prices are derived from the latest observation.
+The `listing_price_intelligence` view derives rolling averages and historical ranges without duplicating
+facts, while the application layer computes the documented, unit-tested assessment and recommendation.
 
 ## Normalization pipeline
 
