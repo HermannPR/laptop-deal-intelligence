@@ -1,4 +1,5 @@
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 
 from collector.sources.cyberpuerta import CyberpuertaAdapter
@@ -51,6 +52,14 @@ def test_google_shopping_keeps_target_merchants_and_provenance() -> None:
     assert listings[0].gpu_model == "RTX 5060"
     assert listings[0].raw_source["provenance"] == "google_shopping_reported"
     assert listings[1].source_slug == "mercadolibre-google"
+
+
+def test_google_shopping_alternates_merchants_every_six_hours() -> None:
+    adapter = GoogleShoppingAdapter()
+    assert adapter.search_query(datetime(2026, 8, 17, 0, tzinfo=UTC)) == "laptop Mercado Libre"
+    assert adapter.search_query(datetime(2026, 8, 17, 6, tzinfo=UTC)) == "laptop Amazon México"
+    assert adapter.search_query(datetime(2026, 8, 17, 12, tzinfo=UTC)) == "laptop Mercado Libre"
+    assert adapter.search_query(datetime(2026, 8, 17, 18, tzinfo=UTC)) == "laptop Amazon México"
 
 
 def test_writer_serializes_limited_rpc_payload() -> None:
