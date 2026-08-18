@@ -25,7 +25,13 @@ def test_normalizes_compact_gpu_and_does_not_treat_storage_as_ram() -> None:
 
 
 def test_prefers_explicit_ram_and_storage_after_ssd_marker() -> None:
-    specs = extract_specs("HP Victus RTX 4050 8GB RAM 16GB SSD 512GB Ryzen 7 8845HS")
+    specs = extract_specs("HP Victus RTX 4050 16GB RAM 512GB SSD Ryzen 7 8845HS")
+    assert specs["ram_gb"] == 16
+    assert specs["storage_gb"] == 512
+
+
+def test_parses_compact_storage_without_confusing_following_ram() -> None:
+    specs = extract_specs("ASUS TUF R7 7445HS 512ssd 16gb RTX 4050")
     assert specs["ram_gb"] == 16
     assert specs["storage_gb"] == 512
 
@@ -33,6 +39,18 @@ def test_prefers_explicit_ram_and_storage_after_ssd_marker() -> None:
 def test_core_tier_does_not_consume_ram_as_a_processor_model() -> None:
     specs = extract_specs("Laptop Intel Core 5 16GB RAM 512GB SSD RTX 4050")
     assert specs["cpu_model"] is None
+
+
+def test_parses_three_digit_modern_intel_core_model() -> None:
+    specs = extract_specs("Acer Nitro Intel Core i5 210H RTX 4050 16GB 512GB SSD")
+    assert specs["cpu_model"] == "Intel Core i5 210H"
+
+
+def test_expands_common_cpu_abbreviations_from_retail_titles() -> None:
+    intel = extract_specs("XPG Xenia I7-12650H RTX4050 16GB 512GB SSD")
+    amd = extract_specs("ASUS TUF R7 7445hs RTX 4050 16GB 512ssd")
+    assert intel["cpu_model"] == "Intel Core i7-12650H"
+    assert amd["cpu_model"] == "AMD Ryzen 7 7445HS"
 
 
 def test_normalizes_gpu_ti_suffix_for_benchmark_matching() -> None:
