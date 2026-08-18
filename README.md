@@ -19,18 +19,20 @@ Without Supabase variables the web app intentionally renders a clearly labelled 
 
 ## Collector
 
-Run the live Cyberpuerta JSON-LD adapter without writing data:
+Run a live direct adapter without writing data:
 
 ```bash
 python -m collector.cli --source cyberpuerta --dry-run
+python -m collector.cli --source decme --dry-run
 ```
 
 To persist observations, set `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and the limited
 `COLLECTOR_INGEST_TOKEN`. The collector never receives the Supabase service-role key. Mercado Libre
 additionally requires `MELI_ACCESS_TOKEN`; the application does not bypass its access controls.
-Google Shopping discovery requires `SERPAPI_API_KEY` and records Amazon/Mercado Libre prices as
+Google Shopping discovery requires `SERPAPI_API_KEY` and records supported retailer prices as
 Google-reported observations so they are not confused with direct retailer checks. Its six-hour runs
-alternate targeted Mercado Libre and Amazon México queries, using about 120 searches in a 30-day month.
+rotate RTX 4050/5050/5060/5070 searches across Amazon, Mercado Libre, Walmart, Bodega Aurrera, DDTech,
+Liverpool, Office Depot, and Costco, using about 120 searches in a 30-day month.
 
 ## Database
 
@@ -68,8 +70,8 @@ minute 17 every six hours to avoid GitHub's busiest scheduling boundary.
 - BUY/WAIT currently evaluates price timing only. GPU Bang for Buck is separate and does not yet include
   CPU, display, battery, build quality, upgradeability, cooling, or model-specific TGP.
 - Mercado Libre live collection needs an authorized API token.
-- Google Shopping discovery links to Google's product result and may be stale or incomplete. It is
-  a discovery fallback for Amazon México and Mercado Libre, not authoritative direct collection.
+- Google Shopping discovery links to Google's product result and may be stale or incomplete. It is a
+  discovery fallback for supported retailers, not authoritative direct collection.
 - Cross-store fuzzy matching is intentionally not automatic yet.
 - Dashboard data is read-only and access control for the personal deployment is deferred until live data exists.
 
