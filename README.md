@@ -1,4 +1,4 @@
-# Precio Justo — Laptop Deal Intelligence
+# LapScrapper
 
 Personal purchasing intelligence for laptop offers in Mexico. The first milestone collects structured
 store data, preserves observed prices, and presents a filterable evidence-first dashboard.
@@ -31,8 +31,9 @@ To persist observations, set `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and the
 additionally requires `MELI_ACCESS_TOKEN`; the application does not bypass its access controls.
 Google Shopping discovery requires `SERPAPI_API_KEY` and records supported retailer prices as
 Google-reported observations so they are not confused with direct retailer checks. Its six-hour runs
-rotate RTX 4050/5050/5060/5070 searches across Amazon, Mercado Libre, Walmart, Bodega Aurrera, DDTech,
-Liverpool, Office Depot, and Costco, using about 120 searches in a 30-day month.
+rotate NVIDIA RTX 4050/4060/5050/5060/5070/5070 Ti/5080 searches across Amazon, Mercado Libre,
+Walmart, Bodega Aurrera, DDTech, Liverpool, Office Depot, and Costco. A full rotation takes roughly
+42 hours while still using about 120 searches in a 30-day month.
 
 ## Database
 

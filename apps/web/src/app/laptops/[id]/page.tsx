@@ -25,8 +25,8 @@ export default async function LaptopDetailPage({ params }: { params: Promise<{ i
   return (
     <main className="app-shell detail-page">
       <header className="app-header">
-        <Link className="product-name" href="/" aria-label="Volver a LapIntel MX">
-          <span className="product-mark">L</span><span>LapIntel MX</span><small>análisis</small>
+        <Link className="product-name" href="/" aria-label="Volver a LapScrapper">
+          <span className="product-mark">LS</span><span>LapScrapper</span><small>análisis</small>
         </Link>
         <div className="header-status"><span className={listing.freshness.isStale ? "status-dot stale" : "status-dot"} /><span>{listing.freshness.isStale ? "precio vencido" : "precio vigente"}</span><time>{formatDate(listing.observedAt)}</time></div>
       </header>
@@ -109,7 +109,7 @@ export default async function LaptopDetailPage({ params }: { params: Promise<{ i
 
       <section className="analysis-caveat"><ShieldCheck size={17} /><p>La recomendación BUY/WAIT evalúa únicamente el momento del precio con la historia disponible. Bang for Buck es una señal GPU/precio independiente; ninguna de las dos predice con certeza precios futuros.</p></section>
 
-      <footer className="app-footer"><span>Verifica disponibilidad, vendedor, garantía y total antes de comprar.</span><span>LapIntel MX · decisión basada en evidencia observada</span></footer>
+      <footer className="app-footer"><span>Verifica disponibilidad, vendedor, garantía y total antes de comprar.</span><span>LapScrapper · decisión basada en evidencia observada</span></footer>
     </main>
   );
 }

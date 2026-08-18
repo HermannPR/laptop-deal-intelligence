@@ -4,7 +4,7 @@ import "@fontsource/ibm-plex-mono/600.css";
 import "./globals.css";
 
 export const metadata = {
-  title: "LapIntel MX — Monitor de ofertas",
+  title: "LapScrapper — Monitor de ofertas",
   description: "Precios observados y rendimiento por peso para laptops en México.",
 };
 

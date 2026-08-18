@@ -12,8 +12,10 @@ export function filterListings(listings: Listing[], filters: ListingFilters): Li
       (!query || haystack.includes(query)) &&
       listing.effectivePriceMxn <= filters.maxPrice &&
       (!filters.store || listing.store === filters.store) &&
-      (!filters.gpu || listing.gpu?.includes(filters.gpu)) &&
+      (!filters.gpu || listing.gpu === filters.gpu) &&
+      (!filters.cpu || listing.cpu?.toLocaleLowerCase("es-MX").includes(filters.cpu.toLocaleLowerCase("es-MX"))) &&
       (listing.ramGb ?? 0) >= filters.minRam &&
+      (!filters.rtxOnly || listing.gpu?.toLocaleUpperCase("es-MX").includes("RTX")) &&
       (filters.includeStale || !listing.freshness.isStale)
     );
   });

@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import httpx
@@ -105,18 +105,13 @@ def test_google_shopping_keeps_relevant_target_merchants_and_provenance() -> Non
 
 def test_google_shopping_rotates_target_gpus_every_six_hours() -> None:
     adapter = GoogleShoppingAdapter()
-    assert adapter.search_query(datetime(2026, 8, 17, 0, tzinfo=UTC)) == (
-        "laptop gamer RTX 4050 16GB"
-    )
-    assert adapter.search_query(datetime(2026, 8, 17, 6, tzinfo=UTC)) == (
-        "laptop gamer RTX 5050 16GB"
-    )
-    assert adapter.search_query(datetime(2026, 8, 17, 12, tzinfo=UTC)) == (
-        "laptop gamer RTX 5060 16GB"
-    )
-    assert adapter.search_query(datetime(2026, 8, 17, 18, tzinfo=UTC)) == (
-        "laptop gamer RTX 5070 16GB"
-    )
+    start = datetime(2026, 8, 17, 0, tzinfo=UTC)
+    queries = {
+        adapter.search_query(start + timedelta(hours=offset))
+        for offset in range(0, 42, 6)
+    }
+    assert queries == set(adapter.search_queries)
+    assert all("NVIDIA RTX" in query for query in queries)
 
 
 def test_writer_serializes_limited_rpc_payload() -> None:

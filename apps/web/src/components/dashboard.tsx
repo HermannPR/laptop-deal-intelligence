@@ -17,7 +17,9 @@ const initialFilters: ListingFilters = {
   maxPrice: 60000,
   store: "",
   gpu: "",
+  cpu: "",
   minRam: 0,
+  rtxOnly: true,
   includeStale: false,
   sort: "bang",
 };
@@ -26,6 +28,12 @@ export function Dashboard({ initialListings, demo }: { initialListings: Listing[
   const [filters, setFilters] = useState(initialFilters);
   const listings = useMemo(() => filterListings(initialListings, filters), [initialListings, filters]);
   const stores = [...new Set(initialListings.map((item) => item.store))].sort();
+  const processors = [
+    ...new Set(initialListings.map((item) => item.cpu).filter((cpu): cpu is string => Boolean(cpu))),
+  ].sort((a, b) => a.localeCompare(b, "es-MX", { numeric: true }));
+  const gpus = [
+    ...new Set(initialListings.map((item) => item.gpu).filter((gpu): gpu is string => Boolean(gpu))),
+  ].sort((a, b) => a.localeCompare(b, "es-MX", { numeric: true }));
   const staleCount = initialListings.filter((item) => item.freshness.isStale).length;
   const scoredCount = initialListings.filter((item) => item.assessment.score !== null).length;
   const benchmarkedCount = initialListings.filter(
@@ -42,15 +50,14 @@ export function Dashboard({ initialListings, demo }: { initialListings: Listing[
   return (
     <main className="app-shell">
       <header className="app-header">
-        <a className="product-name" href="#results" aria-label="LapIntel MX, inicio">
-          <span className="product-mark">L</span>
-          <span>LapIntel MX</span>
-          <small>monitor personal</small>
+        <a className="product-name" href="#results" aria-label="LapScrapper, inicio">
+          <span className="product-mark">LS</span>
+          <span className="product-wordmark">LapScrapper<small>mesa de mercado · MX</small></span>
         </a>
         <div className="header-status">
           <span className="status-dot" />
-          <span>{demo ? "datos de demostración" : "monitor activo"}</span>
-          <time>{formatDate(newest)}</time>
+          <span>{demo ? "demostración" : "recolección activa"}</span>
+          <time>última lectura {formatDate(newest)}</time>
         </div>
       </header>
 
@@ -61,6 +68,7 @@ export function Dashboard({ initialListings, demo }: { initialListings: Listing[
       )}
 
       <section className="summary-strip" aria-label="Resumen del monitor">
+        <div className="summary-intro"><span>ESTADO DEL MERCADO</span><strong>Inventario observado</strong><small>Datos de tiendas mexicanas</small></div>
         <Summary label="Listados" value={initialListings.length} detail="activos y vencidos" />
         <Summary label="Con historial" value={scoredCount} detail="precio calificable" />
         <Summary label="Con benchmark" value={benchmarkedCount} detail="GPU normalizada" />
@@ -77,7 +85,8 @@ export function Dashboard({ initialListings, demo }: { initialListings: Listing[
           />
         </label>
         <FilterSelect label="Tienda" value={filters.store} onChange={(value) => update("store", value)} options={stores} empty="Todas" />
-        <FilterSelect label="GPU" value={filters.gpu} onChange={(value) => update("gpu", value)} options={["RTX 3050", "RTX 4050", "RTX 4060", "RTX 5050", "RTX 5060", "RTX 5070"]} empty="Todas" />
+        <FilterSelect label="GPU" value={filters.gpu} onChange={(value) => update("gpu", value)} options={gpus} empty="Todas" />
+        <FilterSelect label="Procesador" value={filters.cpu} onChange={(value) => update("cpu", value)} options={processors} empty="Todos" />
         <FilterSelect label="RAM mínima" value={String(filters.minRam)} onChange={(value) => update("minRam", Number(value))} options={["16", "24", "32"]} empty="Cualquiera" suffix=" GB" />
         <label className="budget-control">
           <span>Precio máximo</span>
@@ -90,10 +99,15 @@ export function Dashboard({ initialListings, demo }: { initialListings: Listing[
       <section className="results-panel" id="results">
         <div className="results-toolbar">
           <div>
+            <span className="section-kicker">RADAR DE COMPRA</span>
             <h1>Oportunidades actuales</h1>
-            <p>{listings.length} resultados · precio efectivo en MXN</p>
+            <p><b>{listings.length}</b> resultados · precio efectivo en MXN</p>
           </div>
           <div className="toolbar-controls">
+            <label className="stale-toggle rtx-toggle">
+              <input type="checkbox" checked={filters.rtxOnly} onChange={(event) => update("rtxOnly", event.target.checked)} />
+              Solo NVIDIA RTX
+            </label>
             <label className="stale-toggle">
               <input type="checkbox" checked={filters.includeStale} onChange={(event) => update("includeStale", event.target.checked)} />
               Incluir vencidos ({staleCount})
@@ -121,7 +135,7 @@ export function Dashboard({ initialListings, demo }: { initialListings: Listing[
       </section>
 
       <footer className="app-footer">
-        <span>Los precios pueden cambiar; confirma el total en la tienda.</span>
+        <span>LapScrapper / México / Los precios pueden cambiar; confirma el total en la tienda.</span>
         <span>Bang for Buck usa rendimiento GPU de referencia, no el desempeño completo del equipo.</span>
       </footer>
     </main>
