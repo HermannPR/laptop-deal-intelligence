@@ -19,6 +19,18 @@ export type Listing = {
   stockStatus: "in_stock" | "low_stock" | "out_of_stock" | "unknown";
   historyState: "building" | "ready";
   dataProvenance: "direct" | "google_reported";
+  freshness: {
+    isStale: boolean;
+    ageHours: number;
+    staleAfterHours: number;
+  };
+  hardwareValue: {
+    gpuBenchmarkScore: number | null;
+    gpuBenchmarkName: string | null;
+    gpuBenchmarkSource: string | null;
+    gpuBenchmarkSourceUrl: string | null;
+    gpuPointsPer1000Mxn: number | null;
+  };
   priceStats: PriceStats;
   assessment: PriceAssessment;
 };
@@ -31,6 +43,7 @@ export type PricePoint = {
 export type ListingDetail = {
   listing: Listing;
   priceHistory: PricePoint[];
+  alternatives: Listing[];
   demo: boolean;
 };
 
@@ -40,5 +53,6 @@ export type ListingFilters = {
   store: string;
   gpu: string;
   minRam: number;
-  sort: "score" | "price" | "newest" | "gpu";
+  includeStale: boolean;
+  sort: "bang" | "score" | "price" | "newest" | "gpu";
 };

@@ -30,6 +30,12 @@ type ListingRow = {
   observed_days: number;
   price_change_count: number;
   history_span_days: number;
+  stale_after_hours: number;
+  gpu_benchmark_score: number | null;
+  gpu_benchmark_name: string | null;
+  gpu_benchmark_source: string | null;
+  gpu_benchmark_source_url: string | null;
+  gpu_points_per_1000_mxn: number | null;
 };
 
 function fromRow(row: ListingRow): Listing {
@@ -45,6 +51,8 @@ function fromRow(row: ListingRow): Listing {
     historySpanDays: Number(row.history_span_days),
   };
   const effectivePriceMxn = Number(row.effective_price_mxn);
+  const ageHours = Math.max(0, (Date.now() - Date.parse(row.observed_at)) / 3_600_000);
+  const staleAfterHours = Number(row.stale_after_hours);
   return {
     id: row.id,
     store: row.store_name,
@@ -65,6 +73,18 @@ function fromRow(row: ListingRow): Listing {
     historyState:
       priceStats.observationCount >= 4 && priceStats.historySpanDays >= 2 ? "ready" : "building",
     dataProvenance: row.data_provenance,
+    freshness: {
+      isStale: ageHours > staleAfterHours,
+      ageHours,
+      staleAfterHours,
+    },
+    hardwareValue: {
+      gpuBenchmarkScore: nullableNumber(row.gpu_benchmark_score),
+      gpuBenchmarkName: row.gpu_benchmark_name,
+      gpuBenchmarkSource: row.gpu_benchmark_source,
+      gpuBenchmarkSourceUrl: row.gpu_benchmark_source_url,
+      gpuPointsPer1000Mxn: nullableNumber(row.gpu_points_per_1000_mxn),
+    },
     priceStats,
     assessment: assessPrice(effectivePriceMxn, priceStats),
   };
@@ -77,7 +97,7 @@ export async function getListings(): Promise<{ listings: Listing[]; demo: boolea
 
   const supabase = createClient(url, key, { auth: { persistSession: false } });
   const { data, error } = await supabase
-    .from("listing_price_intelligence")
+    .from("listing_value_intelligence")
     .select("*")
     .neq("stock_status", "out_of_stock")
     .order("effective_price_mxn", { ascending: true })
@@ -96,28 +116,58 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) {
     const listing = sampleListings.find((item) => item.id === id);
-    return listing ? { listing, priceHistory: demoHistory(listing), demo: true } : null;
+    return listing
+      ? {
+          listing,
+          priceHistory: demoHistory(listing),
+          alternatives: sampleListings.filter((item) => item.id !== id).slice(0, 4),
+          demo: true,
+        }
+      : null;
   }
 
   const supabase = createClient(url, key, { auth: { persistSession: false } });
-  const [listingResult, historyResult] = await Promise.all([
-    supabase.from("listing_price_intelligence").select("*").eq("id", id).maybeSingle(),
+  const listingResult = await supabase
+    .from("listing_value_intelligence")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (listingResult.error || !listingResult.data) return null;
+
+  const listing = fromRow(listingResult.data as ListingRow);
+  const [historyResult, alternativesResult] = await Promise.all([
     supabase
       .from("price_observations")
       .select("effective_price_mxn, observed_at")
       .eq("listing_id", id)
       .order("observed_at", { ascending: true })
       .limit(365),
+    supabase
+      .from("listing_value_intelligence")
+      .select("*")
+      .neq("id", id)
+      .neq("stock_status", "out_of_stock")
+      .gte("effective_price_mxn", listing.effectivePriceMxn * 0.8)
+      .lte("effective_price_mxn", listing.effectivePriceMxn * 1.2)
+      .limit(24),
   ]);
 
-  if (listingResult.error || !listingResult.data) return null;
   const priceHistory: PricePoint[] = (historyResult.data ?? []).map((point) => ({
     priceMxn: Number(point.effective_price_mxn),
     observedAt: point.observed_at,
   }));
   return {
-    listing: fromRow(listingResult.data as ListingRow),
+    listing,
     priceHistory,
+    alternatives: ((alternativesResult.data ?? []) as ListingRow[])
+      .map(fromRow)
+      .filter((item) => !item.freshness.isStale)
+      .sort(
+        (a, b) =>
+          (b.hardwareValue.gpuPointsPer1000Mxn ?? -1) -
+          (a.hardwareValue.gpuPointsPer1000Mxn ?? -1),
+      )
+      .slice(0, 4),
     demo: false,
   };
 }

@@ -1,17 +1,13 @@
-import "@fontsource-variable/newsreader";
+import "@fontsource-variable/ibm-plex-sans";
 import "@fontsource/ibm-plex-mono/400.css";
 import "@fontsource/ibm-plex-mono/600.css";
 import "./globals.css";
 
 export const metadata = {
-  title: "Precio Justo — Laptop Deal Intelligence",
-  description: "Evidencia de precios y valor real para laptops en México.",
+  title: "LapIntel MX — Monitor de ofertas",
+  description: "Precios observados y rendimiento por peso para laptops en México.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <html lang="es-MX" data-scroll-behavior="smooth">
-      <body>{children}</body>
-    </html>
-  );
+  return <html lang="es-MX" data-scroll-behavior="smooth"><body>{children}</body></html>;
 }

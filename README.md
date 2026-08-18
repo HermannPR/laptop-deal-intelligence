@@ -42,8 +42,9 @@ service role. Never expose that key to the browser.
 
 The dashboard and product detail pages use observed price history rather than retailer discount labels.
 They show 7/30/90-day averages, historical range, a confidence-aware price opportunity score, and an
-evidence-based BUY NOW/CONSIDER/WAIT label. See [price intelligence](docs/price-intelligence.md) for the
-formula and current limitations.
+evidence-based BUY NOW/CONSIDER/WAIT label. A separate GPU Bang for Buck signal compares sourced benchmark
+performance per 1,000 MXN and nearby alternatives. See [price intelligence](docs/price-intelligence.md) and
+[hardware value](docs/hardware-value.md) for formulas and current limitations.
 
 ## Checks
 
@@ -64,7 +65,8 @@ minute 17 every six hours to avoid GitHub's busiest scheduling boundary.
 
 ## Current limitations
 
-- The current score evaluates price opportunity only; hardware, benchmark, and competitor scoring remain.
+- BUY/WAIT currently evaluates price timing only. GPU Bang for Buck is separate and does not yet include
+  CPU, display, battery, build quality, upgradeability, cooling, or model-specific TGP.
 - Mercado Libre live collection needs an authorized API token.
 - Google Shopping discovery links to Google's product result and may be stale or incomplete. It is
   a discovery fallback for Amazon México and Mercado Libre, not authoritative direct collection.
