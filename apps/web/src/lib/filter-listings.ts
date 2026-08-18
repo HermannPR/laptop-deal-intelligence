@@ -13,11 +13,18 @@ export function filterListings(listings: Listing[], filters: ListingFilters): Li
       listing.effectivePriceMxn <= filters.maxPrice &&
       (!filters.store || listing.store === filters.store) &&
       (!filters.gpu || listing.gpu?.includes(filters.gpu)) &&
-      (listing.ramGb ?? 0) >= filters.minRam
+      (listing.ramGb ?? 0) >= filters.minRam &&
+      (filters.includeStale || !listing.freshness.isStale)
     );
   });
 
   return filtered.sort((a, b) => {
+    if (filters.sort === "bang") {
+      return (
+        (b.hardwareValue.gpuPointsPer1000Mxn ?? -1) -
+        (a.hardwareValue.gpuPointsPer1000Mxn ?? -1)
+      );
+    }
     if (filters.sort === "score") {
       return (b.assessment.score ?? -1) - (a.assessment.score ?? -1);
     }

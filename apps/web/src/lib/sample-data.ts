@@ -1,7 +1,17 @@
 import type { Listing } from "./types";
 import { assessPrice, type PriceStats } from "./price-intelligence";
 
-type BaseListing = Omit<Listing, "assessment" | "dataProvenance" | "priceStats">;
+type BaseListing = Omit<
+  Listing,
+  "assessment" | "dataProvenance" | "freshness" | "hardwareValue" | "priceStats"
+>;
+
+const demoGpuScores: Record<string, number> = {
+  "RTX 4050": 1786,
+  "RTX 5050": 2130,
+  "RTX 5060": 2639,
+  "RTX 5070": 3012,
+};
 
 const sampleBaseListings: BaseListing[] = [
   {
@@ -113,9 +123,23 @@ export const sampleListings: Listing[] = sampleBaseListings.map((listing, index)
     priceChangeCount: 4,
     historySpanDays: 30,
   };
+  const gpuKey = Object.keys(demoGpuScores).find((model) => listing.gpu?.includes(model));
+  const gpuBenchmarkScore = gpuKey ? demoGpuScores[gpuKey] : null;
   return {
     ...listing,
     dataProvenance: "direct",
+    freshness: { isStale: false, ageHours: 2, staleAfterHours: 12 },
+    hardwareValue: {
+      gpuBenchmarkScore,
+      gpuBenchmarkName: gpuBenchmarkScore ? "3DMark Steel Nomad" : null,
+      gpuBenchmarkSource: gpuBenchmarkScore ? "UL Benchmarks" : null,
+      gpuBenchmarkSourceUrl: gpuBenchmarkScore
+        ? "https://benchmarks.ul.com/compare/best-gpus"
+        : null,
+      gpuPointsPer1000Mxn: gpuBenchmarkScore
+        ? Number((gpuBenchmarkScore / (listing.effectivePriceMxn / 1000)).toFixed(2))
+        : null,
+    },
     priceStats: stats,
     assessment: assessPrice(listing.effectivePriceMxn, stats),
   };
