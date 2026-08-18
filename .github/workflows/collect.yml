@@ -30,6 +30,8 @@ jobs:
         run: test -n "$SUPABASE_URL" && test -n "$SUPABASE_PUBLISHABLE_KEY" && test -n "$COLLECTOR_INGEST_TOKEN"
       - name: Collect Cyberpuerta
         run: python -m collector.cli --source cyberpuerta
-      - name: Discover Amazon and Mercado Libre through Google Shopping
+      - name: Collect Grupo DECME
+        run: python -m collector.cli --source decme
+      - name: Discover target GPUs across Mexican retailers through Google Shopping
         if: ${{ env.SERPAPI_API_KEY != '' }}
         run: python -m collector.cli --source google-shopping

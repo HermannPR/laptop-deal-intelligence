@@ -20,6 +20,33 @@
     },
     {
       "position": 3,
+      "title": "HP Victus Intel Core i7 RTX 5060 16GB 1TB SSD",
+      "product_id": "walmart-product-1",
+      "product_link": "https://www.google.com/search?ibp=oshop&q=laptop&prds=walmart-product-1",
+      "source": "Walmart México",
+      "price": "$26,999.00",
+      "extracted_price": 26999.0
+    },
+    {
+      "position": 4,
+      "title": "MSI Cyborg Intel Core 7 RTX 5060 16GB 512GB SSD",
+      "product_id": "ddtech-product-1",
+      "product_link": "https://www.google.com/search?ibp=oshop&q=laptop&prds=ddtech-product-1",
+      "source": "DDTech",
+      "price": "$23,999.00",
+      "extracted_price": 23999.0
+    },
+    {
+      "position": 5,
+      "title": "GeForce RTX 5060 graphics card",
+      "product_id": "gpu-accessory-1",
+      "product_link": "https://www.google.com/search?ibp=oshop&q=gpu&prds=gpu-accessory-1",
+      "source": "Walmart México",
+      "price": "$8,999.00",
+      "extracted_price": 8999.0
+    },
+    {
+      "position": 6,
       "title": "Laptop from an untargeted merchant",
       "product_id": "other-product-1",
       "product_link": "https://www.google.com/search?ibp=oshop&q=laptop&prds=other-product-1",

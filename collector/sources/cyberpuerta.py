@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from collections.abc import Sequence
 from typing import Any
+from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 
@@ -14,12 +15,34 @@ from collector.sources.base import SourceAdapter
 class CyberpuertaAdapter(SourceAdapter):
     slug = "cyberpuerta"
     display_name = "Cyberpuerta"
-    catalog_url = "https://www.cyberpuerta.mx/Laptops-Gamer//"
+    catalog_url = "https://www.cyberpuerta.mx/Laptops-Gamer/"
+    max_pages = 10
 
     def collect(self) -> Sequence[CollectedListing]:
         response = self.client.get(self.catalog_url)
         response.raise_for_status()
-        return self.parse(response.text)
+        products = list(self.parse(response.text))
+        for page_url in self._page_urls(response.text):
+            page_response = self.client.get(page_url)
+            page_response.raise_for_status()
+            products.extend(self.parse(page_response.text))
+        return list({product.external_id: product for product in products}.values())
+
+    def _page_urls(self, html: str) -> list[str]:
+        """Return every additional catalog page, bounded against malformed pagination."""
+        soup = BeautifulSoup(html, "html.parser")
+        page_numbers: set[int] = set()
+        for anchor in soup.select('a[href*="pgNr="]'):
+            href = str(anchor.get("href") or "")
+            marker = "pgNr="
+            value = href.split(marker, 1)[-1].split("&", 1)[0]
+            if value.isdigit():
+                page_numbers.add(int(value))
+        return [
+            urljoin(self.catalog_url, f"?pgNr={page}")
+            for page in sorted(page_numbers)
+            if 2 <= page <= self.max_pages
+        ]
 
     def parse(self, html: str) -> list[CollectedListing]:
         soup = BeautifulSoup(html, "html.parser")

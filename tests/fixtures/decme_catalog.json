@@ -1,0 +1,24 @@
+{
+  "products": [
+    {
+      "id": 1001,
+      "title": "Laptop Gamer MSI Cyborg 15 Intel Core 5 210H RTX 5060 32GB SSD 512GB 15.6 Pulgadas",
+      "handle": "msi-cyborg-15-rtx-5060",
+      "body_html": "Pantalla FHD (1920 x 1080), teclado en español.",
+      "tags": ["MEMORIA_32GB DDR5", "ALMACENAMIENTO_SSD 512GB", "IDIOMA DEL TECLADO_ESPAÑOL"],
+      "variants": [{"id": 2001, "title": "Default Title", "available": true, "price": "22899.00", "compare_at_price": "27499.00", "sku": "FA-07231"}]
+    },
+    {
+      "id": 1002,
+      "title": "Laptop Gamer HP Omen Recertificada Ryzen 9 RTX 4070 16GB 1TB SSD 16 Pulgadas",
+      "handle": "hp-omen-recertificada",
+      "variants": [{"id": 2002, "title": "Default Title", "available": false, "price": "25999.00", "compare_at_price": null, "sku": "FA-TEST-RFB"}]
+    },
+    {
+      "id": 1003,
+      "title": "Invalid zero-price laptop",
+      "handle": "invalid-laptop",
+      "variants": [{"id": 2003, "title": "Default Title", "available": true, "price": "0.00"}]
+    }
+  ]
+}

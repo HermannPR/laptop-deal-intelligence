@@ -9,19 +9,31 @@ GPU_PATTERN = re.compile(
     r"(?:NVIDIA\s+)?(?:GeForce\s+)?(RTX\s*\d{4}(?:\s*Ti)?|GTX\s*\d{4}(?:\s*Ti)?)",
     re.IGNORECASE,
 )
-RAM_PATTERN = re.compile(r"(?<!\d)(\d{1,3})\s*GB(?:\s+(?:DDR\d|RAM|de RAM))?", re.IGNORECASE)
-STORAGE_PATTERN = re.compile(
-    r"(?<!\d)(?:(\d+(?:\.\d+)?)\s*(TB)(?:\s*(?:SSD|NVMe))?|"
-    r"(\d+)\s*(GB)\s*(?:SSD|NVMe))",
-    re.IGNORECASE,
+RAM_PATTERN = re.compile(r"(?<!\d)(\d{1,3})\s*GB", re.IGNORECASE)
+EXPLICIT_RAM_PATTERNS = (
+    re.compile(
+        r"(?<!\d)(\d{1,3})\s*GB(?:\s*DDR[345](?:X)?)?\s*(?:DE\s+)?RAM\b",
+        re.IGNORECASE,
+    ),
+    re.compile(r"(?:RAM|MEMORIA(?:\s+RAM)?)(?:\s+DE)?\s*:?\s*(\d{1,3})\s*GB", re.IGNORECASE),
 )
+STORAGE_PREFIX_PATTERN = re.compile(
+    r"(?<!\d)(?:SSD|NVMe|M\.2)\s*:?\s*(\d+(?:\.\d+)?)\s*(TB|GB)", re.IGNORECASE
+)
+STORAGE_SUFFIX_PATTERN = re.compile(
+    r"(?<!\d)(\d+(?:\.\d+)?)\s*(?:(TB|GB)\s*)?(?:SSD|NVMe|M\.2)", re.IGNORECASE
+)
+STORAGE_TB_PATTERN = re.compile(r"(?<!\d)(\d+(?:\.\d+)?)\s*(TB)(?!\w)", re.IGNORECASE)
 SCREEN_PATTERN = re.compile(r"(\d{2}(?:\.\d)?)\s*(?:\"|pulgadas|pulg)", re.IGNORECASE)
 RESOLUTION_PATTERN = re.compile(r"(?<!\d)(\d{3,4})\s*[x×]\s*(\d{3,4})(?!\d)", re.IGNORECASE)
 CPU_PATTERN = re.compile(
-    r"((?:AMD\s+)?Ryzen\s+(?:AI\s+)?[3579]\s+[A-Z0-9-]+|"
-    r"(?:Intel\s+)?Core\s+(?:Ultra\s+)?[3579i]+[-\s]?[A-Z0-9-]+)",
+    r"((?:AMD\s+)?Ryzen\s+(?:AI\s+)?[3579](?:\s+PRO)?\s+(?:[A-Z]{1,3}\s*)?\d{3,5}[A-Z]{0,3}|"
+    r"(?:Intel\s+)?Core\s+(?:Ultra\s+)?(?:i[3579][\s-]?\d{3,5}[A-Z]{0,3}|"
+    r"[3579]\s+\d{3,5}[A-Z]{0,3}))",
     re.IGNORECASE,
 )
+INTEL_CPU_SHORT_PATTERN = re.compile(r"\bI([3579])[-\s](\d{3,5}[A-Z]{0,3})\b", re.IGNORECASE)
+AMD_CPU_SHORT_PATTERN = re.compile(r"\bR([3579])\s+(\d{3,5}[A-Z]{0,3})\b", re.IGNORECASE)
 
 
 def clean_text(value: str) -> str:
@@ -44,22 +56,45 @@ def extract_specs(title: str) -> dict[str, object | None]:
     title = clean_text(title)
     gpu = GPU_PATTERN.search(title)
     cpu = CPU_PATTERN.search(title)
+    intel_cpu_short = INTEL_CPU_SHORT_PATTERN.search(title) if not cpu else None
+    amd_cpu_short = AMD_CPU_SHORT_PATTERN.search(title) if not cpu else None
     ram_values = [int(match.group(1)) for match in RAM_PATTERN.finditer(title)]
-    storage = STORAGE_PATTERN.search(title)
+    storage = (
+        STORAGE_PREFIX_PATTERN.search(title)
+        or STORAGE_SUFFIX_PATTERN.search(title)
+        or STORAGE_TB_PATTERN.search(title)
+    )
     screen = SCREEN_PATTERN.search(title)
     resolution = RESOLUTION_PATTERN.search(title)
 
     storage_gb = None
     if storage:
-        amount = Decimal(storage.group(1) or storage.group(3))
-        unit = storage.group(2) or storage.group(4)
+        amount = Decimal(storage.group(1))
+        unit = storage.group(2) or "GB"
         storage_gb = int(amount * (1024 if unit.upper() == "TB" else 1))
 
-    # Product titles often include GPU VRAM. Prefer a plausible system-memory value.
-    ram_gb = next((value for value in ram_values if value >= 8), None)
+    explicit_ram = next(
+        (match for pattern in EXPLICIT_RAM_PATTERNS if (match := pattern.search(title))),
+        None,
+    )
+    # Exclude common storage capacities and prefer the largest plausible value when titles
+    # contain both system memory and GPU VRAM.
+    plausible_ram = [value for value in ram_values if 8 <= value <= 128]
+    ram_gb = int(explicit_ram.group(1)) if explicit_ram else max(plausible_ram, default=None)
+
+    gpu_model = None
+    if gpu:
+        gpu_model = re.sub(r"^(RTX|GTX)\s*", r"\1 ", clean_text(gpu.group(1).upper()))
+        gpu_model = re.sub(r"\s*TI$", " Ti", gpu_model)
+    cpu_model = clean_text(cpu.group(1)) if cpu else None
+    if intel_cpu_short:
+        cpu_model = f"Intel Core i{intel_cpu_short.group(1)}-{intel_cpu_short.group(2).upper()}"
+    elif amd_cpu_short:
+        cpu_model = f"AMD Ryzen {amd_cpu_short.group(1)} {amd_cpu_short.group(2).upper()}"
+
     return {
-        "cpu_model": clean_text(cpu.group(1)) if cpu else None,
-        "gpu_model": clean_text(gpu.group(1).upper().replace("  ", " ")) if gpu else None,
+        "cpu_model": cpu_model,
+        "gpu_model": gpu_model,
         "ram_gb": ram_gb,
         "storage_gb": storage_gb,
         "screen_size_inches": Decimal(screen.group(1)) if screen else None,

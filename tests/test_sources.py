@@ -2,7 +2,10 @@ import json
 from datetime import UTC, datetime
 from pathlib import Path
 
+import httpx
+
 from collector.sources.cyberpuerta import CyberpuertaAdapter
+from collector.sources.decme import DecmeAdapter
 from collector.sources.google_shopping import GoogleShoppingAdapter
 from collector.sources.mercadolibre import MercadoLibreAdapter
 from collector.storage import SupabaseWriter
@@ -35,6 +38,50 @@ def test_cyberpuerta_finds_products_inside_item_lists() -> None:
     assert products == [{"@type": "Product", "sku": "nested"}]
 
 
+def test_cyberpuerta_collects_discovered_catalog_pages() -> None:
+    first_page = (FIXTURES / "cyberpuerta_catalog.html").read_text().replace(
+        "</body>", '<a href="?pgNr=2">2</a></body>'
+    )
+    second_page = (FIXTURES / "cyberpuerta_catalog.html").read_text().replace(
+        "83JG0099LM", "SECOND-PAGE-SKU"
+    )
+    requested: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requested.append(str(request.url))
+        body = second_page if "pgNr=2" in str(request.url) else first_page
+        return httpx.Response(200, text=body)
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    listings = CyberpuertaAdapter(client=client).collect()
+
+    assert len(listings) == 3
+    assert any(item.external_id == "SECOND-PAGE-SKU" for item in listings)
+    assert requested == [
+        "https://www.cyberpuerta.mx/Laptops-Gamer/",
+        "https://www.cyberpuerta.mx/Laptops-Gamer/?pgNr=2",
+    ]
+
+
+def test_decme_parses_shopify_catalog() -> None:
+    payload = json.loads((FIXTURES / "decme_catalog.json").read_text(encoding="utf-8"))
+    listings = DecmeAdapter().parse(payload)
+
+    assert len(listings) == 2
+    assert listings[0].source_slug == "decme"
+    assert listings[0].external_id == "2001"
+    assert listings[0].model_number == "FA-07231"
+    assert listings[0].gpu_model == "RTX 5060"
+    assert listings[0].ram_gb == 32
+    assert listings[0].storage_gb == 512
+    assert listings[0].resolution == "1920x1080"
+    assert listings[0].keyboard_layout == "Español"
+    assert listings[0].stock_status == "in_stock"
+    assert str(listings[0].effective_price_mxn) == "22899.00"
+    assert listings[1].condition == "refurbished"
+    assert listings[1].stock_status == "out_of_stock"
+
+
 def test_mercadolibre_parser_uses_api_payload() -> None:
     payload = json.loads((FIXTURES / "mercadolibre_search.json").read_text())
     listings = MercadoLibreAdapter().parse(payload)
@@ -43,23 +90,33 @@ def test_mercadolibre_parser_uses_api_payload() -> None:
     assert listings[0].gpu_model == "RTX 5060"
 
 
-def test_google_shopping_keeps_target_merchants_and_provenance() -> None:
+def test_google_shopping_keeps_relevant_target_merchants_and_provenance() -> None:
     payload = json.loads((FIXTURES / "google_shopping_search.json").read_text())
     listings = GoogleShoppingAdapter().parse(payload)
-    assert len(listings) == 2
+    assert len(listings) == 4
     assert listings[0].source_slug == "amazon-mexico-google"
     assert listings[0].source_name == "Amazon México via Google Shopping"
     assert listings[0].gpu_model == "RTX 5060"
     assert listings[0].raw_source["provenance"] == "google_shopping_reported"
     assert listings[1].source_slug == "mercadolibre-google"
+    assert listings[2].source_slug == "walmart-mexico-google"
+    assert listings[3].source_slug == "ddtech-google"
 
 
-def test_google_shopping_alternates_merchants_every_six_hours() -> None:
+def test_google_shopping_rotates_target_gpus_every_six_hours() -> None:
     adapter = GoogleShoppingAdapter()
-    assert adapter.search_query(datetime(2026, 8, 17, 0, tzinfo=UTC)) == "laptop Mercado Libre"
-    assert adapter.search_query(datetime(2026, 8, 17, 6, tzinfo=UTC)) == "laptop Amazon México"
-    assert adapter.search_query(datetime(2026, 8, 17, 12, tzinfo=UTC)) == "laptop Mercado Libre"
-    assert adapter.search_query(datetime(2026, 8, 17, 18, tzinfo=UTC)) == "laptop Amazon México"
+    assert adapter.search_query(datetime(2026, 8, 17, 0, tzinfo=UTC)) == (
+        "laptop gamer RTX 4050 16GB"
+    )
+    assert adapter.search_query(datetime(2026, 8, 17, 6, tzinfo=UTC)) == (
+        "laptop gamer RTX 5050 16GB"
+    )
+    assert adapter.search_query(datetime(2026, 8, 17, 12, tzinfo=UTC)) == (
+        "laptop gamer RTX 5060 16GB"
+    )
+    assert adapter.search_query(datetime(2026, 8, 17, 18, tzinfo=UTC)) == (
+        "laptop gamer RTX 5070 16GB"
+    )
 
 
 def test_writer_serializes_limited_rpc_payload() -> None:
@@ -92,9 +149,11 @@ def test_writer_splits_google_results_into_retailer_sources() -> None:
 
     writer.persist("Google Shopping", listings)
 
-    assert len(writer.client.calls) == 2
+    assert len(writer.client.calls) == 4
     source_names = {call["json"]["p_source_name"] for call in writer.client.calls}
     assert source_names == {
         "Amazon México via Google Shopping",
         "Mercado Libre via Google Shopping",
+        "Walmart México via Google Shopping",
+        "DDTech via Google Shopping",
     }
