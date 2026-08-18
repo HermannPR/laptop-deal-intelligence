@@ -1,1 +1,1 @@
-"""Laptop Deal Intelligence collection package."""
+"""LapScrapper collection package."""

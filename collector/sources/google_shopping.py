@@ -20,13 +20,16 @@ class GoogleShoppingAdapter(SourceAdapter):
     slug = "google-shopping"
     display_name = "Google Shopping"
     endpoint = "https://serpapi.com/search.json"
-    # One query every six hours stays near 120 searches/month while each GPU
-    # class receives a market-wide discovery pass once per day.
+    # One query every six hours stays near 120 searches/month. The broader RTX
+    # rotation completes roughly every 42 hours without increasing API usage.
     search_queries = (
-        "laptop gamer RTX 4050 16GB",
-        "laptop gamer RTX 5050 16GB",
-        "laptop gamer RTX 5060 16GB",
-        "laptop gamer RTX 5070 16GB",
+        "laptop gamer NVIDIA RTX 4050 16GB",
+        "laptop gamer NVIDIA RTX 4060 16GB",
+        "laptop gamer NVIDIA RTX 5050 16GB",
+        "laptop gamer NVIDIA RTX 5060 16GB",
+        "laptop gamer NVIDIA RTX 5070 16GB",
+        "laptop gamer NVIDIA RTX 5070 Ti 16GB",
+        "laptop gamer NVIDIA RTX 5080 16GB",
     )
     merchant_sources = (
         ("bodega aurrera", ("bodega-aurrera-google", "Bodega Aurrera via Google Shopping")),
@@ -61,7 +64,8 @@ class GoogleShoppingAdapter(SourceAdapter):
     def search_query(self, now: datetime | None = None) -> str:
         """Rotate target GPU classes every six hours within SerpApi's free quota."""
         current = now or datetime.now(UTC)
-        return self.search_queries[(current.hour // 6) % len(self.search_queries)]
+        six_hour_slot = int(current.timestamp() // (6 * 60 * 60))
+        return self.search_queries[six_hour_slot % len(self.search_queries)]
 
     def parse(self, payload: dict[str, Any]) -> list[CollectedListing]:
         listings: list[CollectedListing] = []

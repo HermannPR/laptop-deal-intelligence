@@ -52,7 +52,9 @@ export type ListingFilters = {
   maxPrice: number;
   store: string;
   gpu: string;
+  cpu: string;
   minRam: number;
+  rtxOnly: boolean;
   includeStale: boolean;
   sort: "bang" | "score" | "price" | "newest" | "gpu";
 };

@@ -34,9 +34,10 @@ Google Shopping is a discovery adapter rather than a direct retailer adapter. On
 request is filtered to supported merchants, then persisted as separate retailer-labelled sources. Its raw
 payload carries `google_shopping_reported` provenance, and its Google product URL is retained instead of
 claiming that the price was verified directly. The scheduled query rotates target GPU classes every six
-hours, so RTX 4050, 5050, 5060, and 5070 each receive one market-wide discovery pass per day while the
-collector remains comfortably inside SerpApi's 250-search free allowance. Results without a recognized
-GPU plus at least one laptop specification are discarded as low-signal.
+hours. It covers NVIDIA RTX 4050, 4060, 5050, 5060, 5070, 5070 Ti, and 5080, completing a full
+market-wide rotation in roughly 42 hours while the collector remains comfortably inside SerpApi's
+250-search free allowance. Results without a recognized GPU plus at least one laptop specification are
+discarded as low-signal.
 
 Manufacturer model numbers are stronger than title similarity. The MVP does not automatically merge fuzzy
 matches. Later milestones will add a match-candidate review queue and explicit confidence evidence.

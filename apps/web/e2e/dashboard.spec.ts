@@ -5,6 +5,11 @@ test("renders and filters the analyst dashboard", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Oportunidades actuales" })).toBeVisible();
   await expect(page.getByText(/Datos de demostración/)).toBeVisible();
   await expect(page.getByLabel("Orden")).toHaveValue("bang");
+  await expect(page.getByLabel("Procesador")).toBeVisible();
+  await expect(page.getByLabel("Solo NVIDIA RTX")).toBeChecked();
+  await page.getByLabel("Procesador").selectOption({ label: "AMD Ryzen 5 8645HS" });
+  await expect(page.getByLabel("Procesador")).toHaveValue("AMD Ryzen 5 8645HS");
+  await page.getByRole("button", { name: "Limpiar" }).click();
   await page.screenshot({ path: "test-results/dashboard.png", fullPage: true });
 
   await page.getByPlaceholder("Buscar modelo, CPU, GPU o SKU").fill("RTX 4050");
@@ -18,6 +23,7 @@ test("keeps the dashboard usable on a phone viewport", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByPlaceholder("Buscar modelo, CPU, GPU o SKU")).toBeVisible();
   await expect(page.getByRole("link", { name: /^Tienda/i }).first()).toBeVisible();
+  await page.screenshot({ path: "test-results/dashboard-mobile.png", fullPage: true });
   const hasHorizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(hasHorizontalOverflow).toBe(false);
 });
