@@ -77,3 +77,11 @@ minute 17 every six hours to avoid GitHub's busiest scheduling boundary.
 - Dashboard data is read-only and access control for the personal deployment is deferred until live data exists.
 
 See [architecture](docs/architecture.md) for pipeline and source-adapter details.
+
+## Screenshots
+
+![Dashboard](docs/screenshot.png)
+
+Evidence-first dashboard listing observed laptop offers with price history, opportunity score, and
+BUY NOW / CONSIDER / WAIT labels. Without Supabase environment variables the app renders a clearly
+labelled demonstration dataset.
